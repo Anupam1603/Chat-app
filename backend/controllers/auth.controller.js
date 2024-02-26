@@ -1,7 +1,10 @@
 import bcrypt from 'bcryptjs'
 import User from "../models/user.model.js"
+import generateTokenAndSetCookie from '../utils/generateToken.js'
 
 //profile pic api : https://avatar-placeholder.iran.liara.run/
+
+
 export const signup =async (req,res) => {
    try {
      //frontend se data utha le
@@ -34,6 +37,8 @@ export const signup =async (req,res) => {
    });
 
    if(newUser){
+    //Generate JWT Token here
+    generateTokenAndSetCookie(newUser._id, res);
    await newUser.save()
 
    res.status(201).json({
@@ -51,9 +56,41 @@ export const signup =async (req,res) => {
     res.status(500).json({error:"Internal server error"})
    }
 }
-export const login = () => {
-    res.send('login page')
+
+export const login = async (req,res) => {
+
+    try {
+      //take input from frntend
+      const {username, password} = req.body;
+      //search the user
+      const user = await User.findOne({username});
+      const isPasswordCorrect = await bcrypt.compare(password,user?.password || "" );
+
+      if(!user || !isPasswordCorrect)
+      return res.status(400).json({error:"Invaid username or password"})
+
+      generateTokenAndSetCookie(user._id,res);
+
+      res.status(200).json({
+        _id:user._id,
+        fullName:user.fullName,
+        username:user.username,
+        profilePic:user.profilePic,
+
+      })
+
+
+    } catch (error) {
+
+      console.log("Error in login controller", error.message);
+      res.status(500).json({error:"Internal server error"})
+    }
 }
-export const logout = () => {
-    res.send('logout page')
+export const logout =async (req,res) => {
+    try {
+      res.send('logout page')
+    } catch (error) {
+      console.log("Error in logout controller", error.message);
+      res.status(500).json({error:"Internal server error"})
+    }
 }
