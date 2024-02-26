@@ -1,0 +1,12 @@
+We will be having This type databse design
+
+Conversation (collection):
+_id:80
+participants: [1, 2]
+messages: [90]
+
+message(collection):
+_id:90
+senderId:1
+receiverId:2
+message:"hello
